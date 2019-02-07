@@ -1,0 +1,22 @@
+{
+  "name": "srsly_signup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "NODE_ENV=development serverless offline"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-offline": "^4.2.2"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.399.0",
+    "bcrypt": "^3.0.4",
+    "serverless": "^1.37.0",
+    "serverless-dynamodb-client": "0.0.2"
+  }
+}

@@ -1,0 +1,33 @@
+service: srsly_signup
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: prod
+  region: eu-west-1
+  profile: personal
+
+functions:
+  signup:
+    handler: handler.signup
+    events:
+      - http: POST signup
+
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: usersTable
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+plugins:
+  - serverless-offline
