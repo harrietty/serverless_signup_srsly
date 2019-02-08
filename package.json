@@ -5,12 +5,15 @@
   "main": "handler.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development serverless offline"
+    "dev": "NODE_ENV=development serverless offline",
+    "lint": "eslint ./"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^5.13.0",
+    "eslint-config-google": "^0.12.0",
     "serverless-offline": "^4.2.2"
   },
   "dependencies": {

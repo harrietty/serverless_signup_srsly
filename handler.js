@@ -12,34 +12,34 @@ module.exports.signup = async (event, context) => {
       Key: {
         email: {
           S: email,
-        }
-      }
+        },
+      },
     }).promise();
     if (getResponse.Item) {
       return {
         statusCode: 400,
-        body: JSON.stringify({error:`Email address ${email} already in use`}),
+        body: JSON.stringify({error: `Email address ${email} already in use`}),
       };
     } else {
       await dynamoDb.putItem({
         TableName: 'usersTable',
         Item: {
           email: {
-            S: email
+            S: email,
           },
           password: {
             S: hashedPassword,
-          }
-        }
+          },
+        },
       }).promise();
     }
     return {
-      statusCode: 201
+      statusCode: 201,
     };
   } catch (e) {
     return {
       statusCode: 500,
-      body: JSON.stringify({error: e})
-    }
+      body: JSON.stringify({error: e}),
+    };
   };
 };
