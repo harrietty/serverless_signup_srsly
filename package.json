@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development serverless offline",
+    "migrate": "sls dynamodb start --noStart --migrate",
     "lint": "eslint ./"
   },
   "keywords": [],
@@ -14,11 +15,13 @@
   "devDependencies": {
     "eslint": "^5.13.0",
     "eslint-config-google": "^0.12.0",
+    "serverless-dynamodb-local": "^0.2.36",
     "serverless-offline": "^4.2.2"
   },
   "dependencies": {
     "aws-sdk": "^2.399.0",
-    "bcrypt": "^3.0.4",
+    "bcryptjs": "^2.4.3",
+    "random-token": "0.0.8",
     "serverless": "^1.37.0",
     "serverless-dynamodb-client": "0.0.2"
   }

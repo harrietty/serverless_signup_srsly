@@ -1,11 +1,24 @@
-service: srsly_signup
+service: srsly-signup
 
 provider:
   name: aws
   runtime: nodejs8.10
   stage: prod
   region: eu-west-1
-  profile: personal
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        Fn::GetAtt:
+        - usersTable
+        - Arn
 
 functions:
   signup:
@@ -30,4 +43,5 @@ resources:
           WriteCapacityUnits: 1
 
 plugins:
+  - serverless-dynamodb-local
   - serverless-offline

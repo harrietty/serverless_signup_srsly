@@ -63,11 +63,13 @@ plugins:
   - serverless-offline
 ```
 
+We should then run `sls dynamodb install` to install the plugin.
+
 To run the app offline with DynamoDB local, we can run:
 
     $ serverless offline start --migrate
 
-which wil perform a migration (i.e. create the tables we need) when DynamoDB Local starts.
+which will perform a migration (i.e. create the tables we need) when DynamoDB Local starts.
 
 I had problems using the `serverless-dynamodb-local` library so I downloaded DynamoDB Local following the [AWS Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html) and started it with the following command:
 
@@ -76,6 +78,8 @@ I had problems using the `serverless-dynamodb-local` library so I downloaded Dyn
 To create the tables, I then ran:
 
     $ sls dynamodb start --noStart --migrate
+
+Note that the above command needs to be run with the `serverless-dynamodb-local` plugin installed and listed in the `serverless.yml` file.
 
 ## The Serverless DynamoDB Client
 
@@ -87,7 +91,7 @@ We set up the DB connection in `lib/dynamodb.js`.
 
 ## Saving a User
 
-In our `handler.js` file we update our handler to save the data to our Users table. We should never save a plain text password so we will install the `bcrypt` library and hash the password before saving it.
+In our `handler.js` file we update our handler to save the data to our Users table. We should never save a plain text password so we will install the [bcryptjs](https://github.com/dcodeIO/bcrypt.js) library (there are known issues with the Bcrypt library on lambda) and hash the password before saving it.
 
 In the handler, we'll grab the email and password provided from the request body:
 
@@ -108,3 +112,27 @@ We can check the DynamoDB Local database by going to [http://localhost:8000/shel
 Since `putItem` will overwrite an already-existing entry, we need to check whether the user already exists before we call this method.
 
 We use the `getItem` method initially to check the email does not already belong to a user, and respond with a 400 status code if we find this to be true.
+
+## Responding to missing parameters
+
+Send back a 400 response if `email` or `password` are missing. You could also check the email is a valid email.
+
+## Generate a confirm_token
+
+When a user is saved, we need to be able to confirm their email address. We will do this by sending an email to their email address with a link to click on to confirm their email.
+
+The link will have a `confirm_token` as a parameter, if the token matches a token saved in the DB against this user, we know the email address truly belongs to this person.
+
+The dispatching of the email will be handled by a second lambda, and the confirmation of email address by a third, but the `signup` lambda needs to be updated to save a token to the DB when a user is created.
+
+## Deployment
+
+Deploy what we've done so far with
+
+    $ sls deploy
+
+We can view the logs with:
+
+    $ sls logs -f signup
+
+## Dispatch an SQS message on Save
