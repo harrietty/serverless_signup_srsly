@@ -21,6 +21,7 @@
   "dependencies": {
     "aws-sdk": "^2.399.0",
     "bcryptjs": "^2.4.3",
+    "dotenv": "^6.2.0",
     "random-token": "0.0.8",
     "serverless": "^1.37.0",
     "serverless-dynamodb-client": "0.0.2"

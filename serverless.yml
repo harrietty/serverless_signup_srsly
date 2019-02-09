@@ -5,29 +5,79 @@ provider:
   runtime: nodejs8.10
   stage: prod
   region: eu-west-1
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:DescribeTable
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource:
-        Fn::GetAtt:
-        - usersTable
-        - Arn
+  # iamRoleStatements section could be used to add extra statements to the default role that would be generated
 
 functions:
   signup:
     handler: handler.signup
     events:
       - http: POST signup
+    role: singupLambdaRole
 
 resources:
   Resources:
+    singupLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: singupLambdaRole
+        # This section contain the trust relationship policy that grants an entity permission to assume the role. The default policy would have created this automatically
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: dynamoDbUsersAccess
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeTable
+                    - dynamodb:Query
+                    - dynamodb:Scan
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    Fn::GetAtt:
+                    - usersTable
+                    - Arn
+          - PolicyName: sqsConfirmUserAccess
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:sendMessage
+                    - sqs:GetQueueUrl
+                  Resource:
+                    Fn::GetAtt:
+                    - emailConfirmQueue
+                    - Arn
+          # The default policy would have provided CW log access
+          - PolicyName: allowLogs
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+
     usersTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -41,6 +91,10 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    emailConfirmQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: emailConfirmQueue
 
 plugins:
   - serverless-dynamodb-local

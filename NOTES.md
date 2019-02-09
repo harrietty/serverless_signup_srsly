@@ -136,3 +136,14 @@ We can view the logs with:
     $ sls logs -f signup
 
 ## Dispatch an SQS message on Save
+
+```javascript
+await sqs.sendMessage({
+    QueueUrl: process.env.QUEUE_URL,
+    MessageBody: JSON.stringify({
+        email,
+        confirmToken,
+    }),
+}).promise();
+```
+

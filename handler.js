@@ -1,4 +1,5 @@
 'use strict';
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
 const randomToken = require('random-token');
@@ -6,6 +7,8 @@ const dynamoDb = require('./lib/dynamodb');
 const saltRounds = 10;
 
 module.exports.signup = async (event, context) => {
+  if (!process.env.QUEUE_URL) throw new Error('QUEUE_URL is required');
+
   const {email, password} = JSON.parse(event.body);
   if (!email || !password) {
     return {
@@ -46,13 +49,14 @@ module.exports.signup = async (event, context) => {
         },
       }).promise();
 
-      // const sqs = new AWS.SQS();
-      // await sqs.sendMessage({
-      //   MessageBody: JSON.stringify({
-      //     email,
-      //     confirmToken,
-      //   }),
-      // }).promise();
+      const sqs = new AWS.SQS();
+      await sqs.sendMessage({
+        QueueUrl: process.env.QUEUE_URL,
+        MessageBody: JSON.stringify({
+          email,
+          confirmToken,
+        }),
+      }).promise();
 
       return {
         statusCode: 201,
