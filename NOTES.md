@@ -135,15 +135,15 @@ We can view the logs with:
 
     $ sls logs -f signup
 
-## Dispatch an SQS message on Save
+## Dispatch an SNS message on Save
 
 ```javascript
-await sqs.sendMessage({
-    QueueUrl: process.env.QUEUE_URL,
-    MessageBody: JSON.stringify({
+const sns = new AWS.SNS();
+await sns.publish({
+    Message: JSON.stringify({
         email,
         confirmToken,
     }),
+    TargetArn: process.env.SNS_ARN,
 }).promise();
 ```
-

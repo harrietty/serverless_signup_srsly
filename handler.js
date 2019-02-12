@@ -7,7 +7,7 @@ const dynamoDb = require('./lib/dynamodb');
 const saltRounds = 10;
 
 module.exports.signup = async (event, context) => {
-  if (!process.env.QUEUE_URL) throw new Error('QUEUE_URL is required');
+  if (!process.env.SNS_ARN) throw new Error('SNS_ARN is required');
 
   const {email, password} = JSON.parse(event.body);
   if (!email || !password) {
@@ -49,13 +49,13 @@ module.exports.signup = async (event, context) => {
         },
       }).promise();
 
-      const sqs = new AWS.SQS();
-      await sqs.sendMessage({
-        QueueUrl: process.env.QUEUE_URL,
-        MessageBody: JSON.stringify({
+      const sns = new AWS.SNS();
+      await sns.publish({
+        Message: JSON.stringify({
           email,
           confirmToken,
         }),
+        TargetArn: process.env.SNS_ARN,
       }).promise();
 
       return {

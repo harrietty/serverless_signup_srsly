@@ -13,6 +13,10 @@ functions:
     events:
       - http: POST signup
     role: singupLambdaRole
+  mailer:
+    handler: handler.mailer
+    events:
+      - sns: confirmEmail
 
 resources:
   Resources:
@@ -47,19 +51,49 @@ resources:
                     Fn::GetAtt:
                     - usersTable
                     - Arn
-          - PolicyName: sqsConfirmUserAccess
+          - PolicyName: snsConfirmUserAccess
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
                 - Effect: Allow
                   Action:
-                    - sqs:sendMessage
-                    - sqs:GetQueueUrl
+                    - sns:Publish
                   Resource:
                     Fn::GetAtt:
-                    - emailConfirmQueue
+                    - emailConfirmTopic
                     - Arn
           # The default policy would have provided CW log access
+          - PolicyName: allowLogs
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+
+    mailerLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: mailerLambdaRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
           - PolicyName: allowLogs
             PolicyDocument:
               Version: '2012-10-17'
@@ -91,10 +125,6 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-    emailConfirmQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: emailConfirmQueue
 
 plugins:
   - serverless-dynamodb-local
