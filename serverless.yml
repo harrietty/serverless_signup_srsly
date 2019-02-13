@@ -12,18 +12,19 @@ functions:
     handler: handler.signup
     events:
       - http: POST signup
-    role: singupLambdaRole
+    role: signupLambdaRole
   mailer:
     handler: handler.mailer
     events:
-      - sns: confirmEmail
+      - sns: signupMailerTopic
+    role: mailerLambdaRole
 
 resources:
   Resources:
-    singupLambdaRole:
+    signupLambdaRole:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: singupLambdaRole
+        RoleName: signupLambdaRole
         # This section contain the trust relationship policy that grants an entity permission to assume the role. The default policy would have created this automatically
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
@@ -58,10 +59,7 @@ resources:
                 - Effect: Allow
                   Action:
                     - sns:Publish
-                  Resource:
-                    Fn::GetAtt:
-                    - emailConfirmTopic
-                    - Arn
+                  Resource: !Ref SNSTopicSignupMailerTopic
           # The default policy would have provided CW log access
           - PolicyName: allowLogs
             PolicyDocument:

@@ -147,3 +147,38 @@ await sns.publish({
     TargetArn: process.env.SNS_ARN,
 }).promise();
 ```
+## Updating the Serverless config
+
+Create a second lambda with an SNS Topic. Serverless will create the SNS topic, giving it the logical resource name of `SNSTopicSignupMailerTopic`. The rules around how Serverless creates logical names can be found [here](https://serverless.com/framework/docs/providers/aws/guide/resources/).
+
+```yaml
+mailer:
+    handler: handler.mailer
+    events:
+      - sns: signupMailerTopic
+    role: mailerLambdaRole
+```
+
+The signup function will need a Policy attached so that it can publish messages to S3:
+
+```yaml
+- PolicyName: snsConfirmUserAccess
+    PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+            Action:
+            - sns:Publish
+            Resource: !Ref SNSTopicSignupMailerTopic
+```
+
+## Mailer Receiver Function
+
+To begin with, create a new function that simply logs the event
+
+```javascript
+module.exports.mailer = async (event, context) => {
+  console.log(event);
+  return 'Sending an email!';
+};
+```

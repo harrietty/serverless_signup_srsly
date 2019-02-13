@@ -69,3 +69,8 @@ module.exports.signup = async (event, context) => {
     };
   };
 };
+
+module.exports.mailer = async (event, context) => {
+  console.log(JSON.stringify(event));
+  return 'Sending an email!';
+};
